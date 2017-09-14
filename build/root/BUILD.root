@@ -4,6 +4,8 @@
 # gazelle:exclude _tmp
 # gazelle:prefix k8s.io/kubernetes
 
+fail("Bazel support for BoringCrypto + Kubernetes not yet implemented")
+
 package(default_visibility = ["//visibility:public"])
 
 load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
