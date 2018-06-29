@@ -161,13 +161,13 @@ func (o *CloudControllerManagerOptions) ApplyTo(c *cloudcontrollerconfig.Config,
 	if err := o.ServiceController.ApplyTo(&c.ComponentConfig.ServiceController); err != nil {
 		return err
 	}
-	if err := o.SecureServing.ApplyTo(&c.SecureServing); err != nil {
+	if err := o.SecureServing.ApplyTo(&c.SecureServing, nil); err != nil {
 		return err
 	}
 	if err := o.InsecureServing.ApplyTo(&c.InsecureServing); err != nil {
 		return err
 	}
-	if err := o.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil); err != nil {
+	if err := o.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil, nil); err != nil {
 		return err
 	}
 	if err := o.Authorization.ApplyTo(&c.Authorization); err != nil {

@@ -40,7 +40,7 @@ func (s *SecureServingOptionsWithLoopback) ApplyTo(c *server.Config) error {
 		return nil
 	}
 
-	if err := s.SecureServingOptions.ApplyTo(&c.SecureServing); err != nil {
+	if err := s.SecureServingOptions.ApplyTo(&c.SecureServing, &c.NewSecureServing); err != nil {
 		return err
 	}
 

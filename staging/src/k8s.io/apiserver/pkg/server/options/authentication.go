@@ -152,7 +152,7 @@ func (s *DelegatingAuthenticationOptions) AddFlags(fs *pflag.FlagSet) {
 
 }
 
-func (s *DelegatingAuthenticationOptions) ApplyTo(c *server.AuthenticationInfo, servingInfo *server.SecureServingInfo, openAPIConfig *openapicommon.Config) error {
+func (s *DelegatingAuthenticationOptions) ApplyTo(c *server.AuthenticationInfo, servingInfo *server.SecureServingInfo, newServingInfo *server.SecureServingInfo, openAPIConfig *openapicommon.Config) error {
 	if s == nil {
 		c.Authenticator = nil
 		return nil
@@ -166,7 +166,7 @@ func (s *DelegatingAuthenticationOptions) ApplyTo(c *server.AuthenticationInfo, 
 			glog.Warning(err)
 		}
 	}
-	if err = c.ApplyClientCert(clientCA.ClientCA, servingInfo); err != nil {
+	if err = c.ApplyClientCert(clientCA.ClientCA, servingInfo, newServingInfo); err != nil {
 		return fmt.Errorf("unable to load client CA file: %v", err)
 	}
 
@@ -174,7 +174,7 @@ func (s *DelegatingAuthenticationOptions) ApplyTo(c *server.AuthenticationInfo, 
 	if err != nil {
 		return err
 	}
-	if err = c.ApplyClientCert(requestHeader.ClientCAFile, servingInfo); err != nil {
+	if err = c.ApplyClientCert(requestHeader.ClientCAFile, servingInfo, newServingInfo); err != nil {
 		return fmt.Errorf("unable to load client CA file: %v", err)
 	}
 

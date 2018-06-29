@@ -170,10 +170,10 @@ func (o *Options) ApplyTo(c *schedulerappconfig.Config) error {
 		}
 	}
 
-	if err := o.SecureServing.ApplyTo(&c.SecureServing); err != nil {
+	if err := o.SecureServing.ApplyTo(&c.SecureServing, nil); err != nil {
 		return err
 	}
-	if err := o.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil); err != nil {
+	if err := o.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil, nil); err != nil {
 		return err
 	}
 	return o.Authorization.ApplyTo(&c.Authorization)

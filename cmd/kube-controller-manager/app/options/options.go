@@ -333,13 +333,13 @@ func (s *KubeControllerManagerOptions) ApplyTo(c *kubecontrollerconfig.Config, u
 	if err := s.ServiceController.ApplyTo(&c.ComponentConfig.ServiceController); err != nil {
 		return err
 	}
-	if err := s.SecureServing.ApplyTo(&c.SecureServing); err != nil {
+	if err := s.SecureServing.ApplyTo(&c.SecureServing, nil); err != nil {
 		return err
 	}
 	if err := s.InsecureServing.ApplyTo(&c.InsecureServing); err != nil {
 		return err
 	}
-	if err := s.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil); err != nil {
+	if err := s.Authentication.ApplyTo(&c.Authentication, c.SecureServing, nil, nil); err != nil {
 		return err
 	}
 	if err := s.Authorization.ApplyTo(&c.Authorization); err != nil {
