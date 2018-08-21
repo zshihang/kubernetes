@@ -53,5 +53,6 @@ func NewContainerRuntimeOptions() *config.ContainerRuntimeOptions {
 		PodSandboxImage:            defaultPodSandboxImage,
 		ImagePullProgressDeadline:  metav1.Duration{Duration: 1 * time.Minute},
 		ExperimentalDockershim:     false,
+		GVisorNodeMode:             false,
 	}
 }
