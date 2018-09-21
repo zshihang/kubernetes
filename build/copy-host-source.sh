@@ -43,6 +43,7 @@ tar xJf /usr/src/glibc/glibc-2.24.tar.xz -C /tmp glibc-2.24/LICENSES
 
 LICENSES_FILE="${KUBE_OUTPUT}/src/HOST_LICENSES"
 rm -f "${LICENSES_FILE}"
+# If you change this list, also be sure to change build/licenses.bzl.
 (
   format_license "GNU C Library" /tmp/glibc-2.24/LICENSES
   format_license "Go standard library" /usr/local/go/LICENSE

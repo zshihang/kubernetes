@@ -4,7 +4,7 @@ load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build", "docker_push")
 
 docker_build(
     name = "image",
-    base = "@official_busybox//image",
+    base = "@official_busybox_glibc//image",
     entrypoint = ["/kubemark"],
     files = ["//cmd/kubemark"],
 )
