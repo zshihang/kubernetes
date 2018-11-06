@@ -65,7 +65,7 @@ func GetAllImages(cfg *kubeadmapi.MasterConfiguration) []string {
 	imgs = append(imgs, fmt.Sprintf("%v/%v-%v:%v", repoPrefix, constants.KubeProxy, runtime.GOARCH, kubeadmutil.KubernetesVersionToImageTag(cfg.KubernetesVersion)))
 
 	// pause, etcd and kube-dns are not available on the ci image repository so use the default image repository.
-	imgs = append(imgs, GetGenericImage(cfg.ImageRepository, "pause", "3.1"))
+	imgs = append(imgs, GetGenericArchImage(cfg.ImageRepository, "pause", "3.1-gke.5"))
 
 	// if etcd is not external then add the image as it will be required
 	if cfg.Etcd.Local != nil {

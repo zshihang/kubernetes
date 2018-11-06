@@ -281,7 +281,7 @@ const (
 	LeaseEndpointReconcilerType = "lease"
 
 	// KubeDNSVersion is the version of kube-dns to be deployed if it is used
-	KubeDNSVersion = "1.14.10"
+	KubeDNSVersion = "1.14.10-gke.0"
 
 	// CoreDNSVersion is the version of CoreDNS to be deployed if it is used
 	CoreDNSVersion = "1.1.3"
