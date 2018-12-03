@@ -15,7 +15,10 @@ go_binary(
 
 go_library(
     name = "go_default_library",
-    srcs = ["kubectl.go"],
+    srcs = [
+        "fipsonly.go",
+        "kubectl.go",
+    ],
     importpath = "k8s.io/kubernetes/cmd/kubectl",
     visibility = ["//visibility:private"],
     deps = [
