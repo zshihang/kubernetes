@@ -62,7 +62,7 @@ go_download_sdk(
 
 http_file(
     name = "go_src",
-    sha256 = "323a184c77e3a377f5ed993b04946ee7b1a8e3350aba2894c0944f1e313636f1",
+    sha256 = "c1f5df50a4be3d0cb3aed7b80728f2b23c18deff0383636274742a38c145f939",
     urls = ["https://storage.googleapis.com/go-boringcrypto/" + GOBORING_VERSION + ".src.tar.gz"],
 )
 
