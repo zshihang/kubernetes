@@ -1051,7 +1051,7 @@ func TestReturnedAnnotationAdd(t *testing.T) {
 
 			pod := tt.pod
 
-			attr := admission.NewAttributesRecord(pod, nil, api.Kind("Pod").WithVersion("version"), "namespace", "", api.Resource("pods").WithVersion("version"), "", admission.Create, false, &user.DefaultInfo{})
+			attr := admission.NewAttributesRecord(pod, nil, api.Kind("Pod").WithVersion("version"), "namespace", "", api.Resource("pods").WithVersion("version"), "", admission.Create, &user.DefaultInfo{})
 			annotations := make(map[string]string)
 			attr = &fakeAttributes{attr, annotations}
 
