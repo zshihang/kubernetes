@@ -20,15 +20,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/kubernetes/pkg/api/legacyscheme"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 	"text/template"
-
-	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/kubernetes/pkg/api/legacyscheme"
 )
 
 const (
@@ -57,16 +56,13 @@ func newManifestTestCase(t *testing.T, manifest, funcName string, auxManifests [
 		auxManifests:     auxManifests,
 		manifestFuncName: funcName,
 	}
-
 	d, err := ioutil.TempDir("", "configure-helper-test")
 	if err != nil {
 		c.t.Fatalf("Failed to create temp directory: %v", err)
 	}
-
 	c.kubeHome = d
 	c.envScriptPath = filepath.Join(c.kubeHome, envScriptFileName)
 	c.manifestSources = filepath.Join(c.kubeHome, "kube-manifests", "kubernetes", "gci-trusty")
-
 	currentPath, err := os.Getwd()
 	if err != nil {
 		c.t.Fatalf("Failed to get current directory: %v", err)
@@ -75,24 +71,19 @@ func newManifestTestCase(t *testing.T, manifest, funcName string, auxManifests [
 	c.manifestTemplateDir = filepath.Join(gceDir, "manifests")
 	c.manifestTemplate = filepath.Join(c.manifestTemplateDir, c.manifest)
 	c.manifestDestination = filepath.Join(c.kubeHome, "etc", "kubernetes", "manifests", c.manifest)
-
 	c.mustCopyFromTemplate()
 	c.mustCopyAuxFromTemplate()
 	c.mustCreateManifestDstDir()
-
 	return c
 }
-
 func (c *ManifestTestCase) mustCopyFromTemplate() {
 	if err := os.MkdirAll(c.manifestSources, os.ModePerm); err != nil {
 		c.t.Fatalf("Failed to create source directory: %v", err)
 	}
-
 	if err := copyFile(c.manifestTemplate, filepath.Join(c.manifestSources, c.manifest)); err != nil {
 		c.t.Fatalf("Failed to copy source manifest to KUBE_HOME: %v", err)
 	}
 }
-
 func (c *ManifestTestCase) mustCopyAuxFromTemplate() {
 	for _, m := range c.auxManifests {
 		err := copyFile(filepath.Join(c.manifestTemplateDir, m), filepath.Join(c.manifestSources, m))
@@ -101,33 +92,27 @@ func (c *ManifestTestCase) mustCopyAuxFromTemplate() {
 		}
 	}
 }
-
 func (c *ManifestTestCase) mustCreateManifestDstDir() {
 	p := filepath.Join(filepath.Join(c.kubeHome, "etc", "kubernetes", "manifests"))
 	if err := os.MkdirAll(p, os.ModePerm); err != nil {
 		c.t.Fatalf("Failed to create designation folder for kube-apiserver.manifest: %v", err)
 	}
 }
-
 func (c *ManifestTestCase) mustCreateEnv(envTemplate string, env interface{}) {
 	f, err := os.Create(filepath.Join(c.kubeHome, envScriptFileName))
 	if err != nil {
 		c.t.Fatalf("Failed to create envScript: %v", err)
 	}
 	defer f.Close()
-
 	t := template.Must(template.New("env").Parse(envTemplate))
-
 	if err = t.Execute(f, env); err != nil {
 		c.t.Fatalf("Failed to execute template: %v", err)
 	}
 }
-
 func (c *ManifestTestCase) mustInvokeFunc(envTemplate string, env interface{}) {
 	c.mustCreateEnv(envTemplate, env)
-	args := fmt.Sprintf("source %s ; source %s --source-only ; %s", c.envScriptPath, configureHelperScriptName, c.manifestFuncName)
+	args := fmt.Sprintf("source %s ; source %s; %s", c.envScriptPath, configureHelperScriptName, c.manifestFuncName)
 	cmd := exec.Command("bash", "-c", args)
-
 	bs, err := cmd.CombinedOutput()
 	if err != nil {
 		c.t.Logf("%s", bs)
@@ -135,22 +120,18 @@ func (c *ManifestTestCase) mustInvokeFunc(envTemplate string, env interface{}) {
 	}
 	c.t.Logf("%s", string(bs))
 }
-
 func (c *ManifestTestCase) mustLoadPodFromManifest() {
 	json, err := ioutil.ReadFile(c.manifestDestination)
 	if err != nil {
 		c.t.Fatalf("Failed to read manifest: %s, %v", c.manifestDestination, err)
 	}
-
 	if err := runtime.DecodeInto(legacyscheme.Codecs.UniversalDecoder(), json, &c.pod); err != nil {
-		c.t.Fatalf("Failed to decode manifest: %v", err)
+		c.t.Fatalf("Failed to decode manifest:\n%s\nerror: %v", json, err)
 	}
 }
-
 func (c *ManifestTestCase) tearDown() {
 	os.RemoveAll(c.kubeHome)
 }
-
 func copyFile(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
