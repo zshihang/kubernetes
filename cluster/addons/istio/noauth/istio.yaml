@@ -273,7 +273,7 @@ metadata:
   namespace: istio-system
   labels:
     k8s-app: istio
-    addonmanager.kubernetes.io/mode: EnsureExists
+    addonmanager.kubernetes.io/mode: Reconcile
     app: istio
     chart: istio-1.0.6
     release: istio
@@ -285,7 +285,7 @@ data:
     template: |-
       initContainers:
       - name: istio-init
-        image: "gcr.io/gke-release/istio/proxy_init:1.0.6-gke.1"
+        image: "gcr.io/gke-release/istio/proxy_init:1.0.6-gke.3"
         args:
         - "-p"
         - [[ .MeshConfig.ProxyListenPort ]]
@@ -310,7 +310,7 @@ data:
         restartPolicy: Always
       containers:
       - name: istio-proxy
-        image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`  "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"  ]]
+        image: [[ annotation .ObjectMeta `sidecar.istio.io/proxyImage`  "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"  ]]
 
         ports:
         - containerPort: 15090
@@ -2428,7 +2428,7 @@ spec:
       serviceAccountName: istio-galley-service-account
       containers:
         - name: validator
-          image: "gcr.io/gke-release/istio/galley:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/galley:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 443
@@ -2541,7 +2541,7 @@ spec:
       serviceAccountName: istio-egressgateway-service-account
       containers:
         - name: istio-proxy
-          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -2679,7 +2679,7 @@ spec:
       serviceAccountName: istio-ingressgateway-service-account
       containers:
         - name: istio-proxy
-          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -2866,7 +2866,7 @@ spec:
                 - s390x
       containers:
       - name: mixer
-        image: "gcr.io/gke-release/istio/mixer:1.0.6-gke.1"
+        image: "gcr.io/gke-release/istio/mixer:1.0.6-gke.3"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9093
@@ -2892,7 +2892,7 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
       - name: istio-proxy
-        image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"
+        image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9091
@@ -2969,7 +2969,7 @@ spec:
         emptyDir: {}
       containers:
       - name: mixer
-        image: "gcr.io/gke-release/istio/mixer:1.0.6-gke.1"
+        image: "gcr.io/gke-release/istio/mixer:1.0.6-gke.3"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9093
@@ -2994,7 +2994,7 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
       - name: istio-proxy
-        image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"
+        image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9091
@@ -3071,7 +3071,7 @@ spec:
       serviceAccountName: istio-pilot-service-account
       containers:
         - name: discovery
-          image: "gcr.io/gke-release/istio/pilot:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/pilot:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           args:
           - "discovery"
@@ -3106,10 +3106,6 @@ spec:
             value: "1"
           - name: SIDECAR_TO_TELEMETRY_SESSION_AFFINITY
             value: "true"
-          resources:
-            requests:
-              cpu: 500m
-              memory: 2048Mi
             
           volumeMounts:
           - name: config-volume
@@ -3118,7 +3114,7 @@ spec:
             mountPath: /etc/certs
             readOnly: true
         - name: istio-proxy
-          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/proxyv2:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 15003
@@ -3224,158 +3220,8 @@ spec:
     spec:
       serviceAccountName: istio-citadel-service-account
       containers:
-      - args:
-        - --prometheus.wal-directory=/data/wal
-        - --stackdriver.project-id=
-        - --stackdriver.kubernetes.location=
-        - --stackdriver.kubernetes.cluster-name=
-        - --stackdriver.use-gke-resource
-        - --stackdriver.metrics-prefix=container.googleapis.com/internal/addons/istio
-        - --config-file=/etc/prometheus-sidecar/sidecar.yml
-        - --filter=__name__=~"^(pilot_xds_pushes|pilot_xds_push_timeouts|pilot_errors_xds|pilot_errors_internal|envoy_cx_errors|envoy_cx_timeouts|envoy_cx_count|envoy_rq_count)$"
-        image: gcr.io/istio-release/stackdriver-prometheus-sidecar:0.1
-        env:
-        - name: DEBUG
-          value: "1"
-        imagePullPolicy: Always
-        name: sidecar
-        ports:
-        - containerPort: 9091
-          name: sidecar
-          protocol: TCP
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /data
-          name: data-volume
-        - mountPath: /etc/prometheus-sidecar
-          name: static-config-volume
-      - args:
-        - --storage.tsdb.retention=6h
-        - --storage.tsdb.path=/data
-        - --storage.tsdb.min-block-duration=15m
-        - --storage.tsdb.max-block-duration=4h
-        - --config.file=/etc/prometheus/prometheus.yml
-        image: quay.io/prometheus/prometheus:v2.4.3
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /-/healthy
-            port: 9090
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: prometheus
-        ports:
-        - containerPort: 9090
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /-/ready
-            port: 9090
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /etc/prometheus
-          name: config-volume
-        - mountPath: /etc/prometheus-rules
-          name: rules-config-volume
-        - mountPath: /etc/istio-certs
-          name: istio-certs
-        - mountPath: /data
-          name: data-volume
-      volumes:
-      - configMap:
-          defaultMode: 420
-          name: prometheus
-        name: config-volume
-      - configMap:
-          defaultMode: 420
-          name: prometheus-rules
-        name: rules-config-volume
-      - emptyDir: {}
-        name: data-volume
-      - configMap:
-          defaultMode: 420
-          name: prometheus-sidecar
-        name: static-config-volume
-      - name: istio-certs
-        secret:
-          defaultMode: 420
-          optional: true
-          secretName: istio.default
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-                - ppc64le
-                - s390x
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - ppc64le
-          - weight: 2
-            preference:
-              matchExpressions:
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - s390x
-
----
-# Source: istio/charts/sidecarInjectorWebhook/templates/deployment.yaml
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: istio-citadel
-  namespace: istio-system
-  labels:
-    k8s-app: istio
-    addonmanager.kubernetes.io/mode: Reconcile
-    app: security
-    chart: security-1.0.3
-    release: istio
-    heritage: Tiller
-    istio: citadel
-spec:
-  template:
-    metadata:
-      labels:
-        istio: citadel
-      annotations:
-        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
-        sidecar.istio.io/inject: "false"
-        scheduler.alpha.kubernetes.io/critical-pod: ""
-    spec:
-      serviceAccountName: istio-citadel-service-account
-      containers:
         - name: citadel
-          image: "gcr.io/gke-release/istio/citadel:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/citadel:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           args:
             - --append-dns-names=true
@@ -3447,7 +3293,7 @@ spec:
       serviceAccountName: istio-sidecar-injector-service-account
       containers:
         - name: sidecar-injector-webhook
-          image: "gcr.io/gke-release/istio/sidecar_injector:1.0.6-gke.1"
+          image: "gcr.io/gke-release/istio/sidecar_injector:1.0.6-gke.3"
           imagePullPolicy: IfNotPresent
           args:
             - --caCertFile=/etc/istio/certs/root-cert.pem
