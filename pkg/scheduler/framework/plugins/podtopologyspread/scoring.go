@@ -24,10 +24,10 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 	pluginhelper "k8s.io/kubernetes/pkg/scheduler/framework/plugins/helper"
 	framework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
+	"k8s.io/kubernetes/pkg/scheduler/internal/parallelize"
 )
 
 const preScoreStateKey = "PreScore" + Name
@@ -163,7 +163,7 @@ func (pl *PodTopologySpread) PreScore(
 			atomic.AddInt64(tpCount, int64(count))
 		}
 	}
-	workqueue.ParallelizeUntil(ctx, 16, len(allNodes), processAllNode)
+	parallelize.Until(ctx, len(allNodes), processAllNode)
 
 	cycleState.Write(preScoreStateKey, state)
 	return nil
