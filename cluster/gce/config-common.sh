@@ -160,3 +160,7 @@ export WINDOWS_BOOTSTRAP_KUBECONFIG_FILE="${WINDOWS_K8S_DIR}\kubelet.bootstrap-k
 export WINDOWS_KUBEPROXY_KUBECONFIG_FILE="${WINDOWS_K8S_DIR}\kubeproxy.kubeconfig"
 # Pause container image for Windows container.
 export WINDOWS_INFRA_CONTAINER="gcr.io/gke-release/pause-win:1.2.0"
+# Storage Path for csi-proxy. csi-proxy only needs to be installed for Windows.
+export CSI_PROXY_STORAGE_PATH="https://storage.googleapis.com/gke-release/csi-proxy"
+# Version for csi-proxy
+export CSI_PROXY_VERSION="v0.2.1-gke.0"
