@@ -17,7 +17,7 @@
         "containers": [
             {
                 "name": "cluster-autoscaler",
-                "image": "gcr.io/gke-master-images/cluster-autoscaler:cluster-autoscaler-v2020.07.13-1.18-gke.0",
+                "image": "gcr.io/gke-master-images/cluster-autoscaler:cluster-autoscaler-v2020.08.05-1.18-gke.0",
                 "livenessProbe": {
                     "httpGet": {
                         "path": "/health-check",
@@ -74,6 +74,11 @@
                         "name": "logfile",
                         "mountPath": "/var/log/cluster-autoscaler.log",
                         "readOnly": false
+                    },
+                    {
+                        "name": "quotafile",
+                        "mountPath": "/etc/srv/kubernetes/gke-resource-quota",
+                        "readOnly": true
                     }
                 ],
                 "terminationMessagePath": "/dev/termination-log",
@@ -105,6 +110,12 @@
                 "hostPath": {
                     "path": "/var/log/cluster-autoscaler.log",
                     "type": "FileOrCreate"
+                }
+            },
+            {
+                "name": "quotafile",
+                "hostPath": {
+                    "path": "/etc/srv/kubernetes/gke-resource-quota"
                 }
             }
         ],
