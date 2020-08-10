@@ -415,15 +415,19 @@ function ensure-local-ssds-ephemeral-storage() {
     return
   fi
 
-  # Create RAID array
-  local md_device=(/dev/md/*)
-  md_device=${md_device[0]}
-  if [ ! -e "$md_device" ]; then
-    md_device="/dev/md/0"
-    echo "y" | mdadm --create "${md_device}" --level=0 --raid-devices=${#devices[@]} ${devices[@]}
+  local device="${devices[0]}"
+  if [ "${#devices[@]}" -ne 1 ]; then
+    device=(/dev/md/*)
+    device=${device[0]}
+    echo "Setting RAID array with local SSDs on device ${device}"
+    if [ ! -e "$device" ]; then
+      device="/dev/md/0"
+      echo "y" | mdadm --create "${device}" --level=0 --raid-devices=${#devices[@]} ${devices[@]}
+    fi
   fi
+
   local ephemeral_mountpoint="/mnt/stateful_partition/kube-ephemeral-ssd"
-  safe-format-and-mount "${md_device}" "${ephemeral_mountpoint}"
+  safe-format-and-mount "${device}" "${ephemeral_mountpoint}"
 
   # mount container runtime root dir on SSD
   local container_runtime="${CONTAINER_RUNTIME:-docker}"
