@@ -432,9 +432,13 @@ function ensure-local-ssds-ephemeral-storage() {
   # mount container runtime root dir on SSD
   local container_runtime="${CONTAINER_RUNTIME:-docker}"
   systemctl stop "$container_runtime"
-  # Some images mount the container runtime root dir.
+  # Some images remount the container runtime root dir.
   umount "/var/lib/${container_runtime}" || true
-  mkdir -p "${ephemeral_mountpoint}/${container_runtime}"
+  # Move the container runtime's directory to the new location to preserve
+  # preloaded images.
+  if [ ! -d "${ephemeral_mountpoint}/${container_runtime}" ]; then
+    mv "/var/lib/${container_runtime}" "${ephemeral_mountpoint}/${container_runtime}"
+  fi
   safe-bind-mount "${ephemeral_mountpoint}/${container_runtime}" "/var/lib/${container_runtime}"
   systemctl start "$container_runtime"
 
