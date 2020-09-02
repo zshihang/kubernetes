@@ -405,7 +405,7 @@ function ensure-local-ssds-ephemeral-storage() {
     if [ -e "${ssd}" ]; then
       # This workaround to find if the NVMe device is a local SSD is required
       # because the existing Google images does not them in /dev/disk/by-id
-      if [[ "$(lsblk -o MODEL -dn ${ssd})" == "nvme_card" ]]; then
+      if [[ "$(lsblk -o MODEL -dn "${ssd}")" == "nvme_card" ]]; then
         devices+=("${ssd}")
       fi
     fi
@@ -417,12 +417,12 @@ function ensure-local-ssds-ephemeral-storage() {
 
   local device="${devices[0]}"
   if [ "${#devices[@]}" -ne 1 ]; then
-    device=(/dev/md/*)
-    device=${device[0]}
+    seen_arrays=(/dev/md/*)
+    device=${seen_arrays[0]}
     echo "Setting RAID array with local SSDs on device ${device}"
     if [ ! -e "$device" ]; then
       device="/dev/md/0"
-      echo "y" | mdadm --create "${device}" --level=0 --raid-devices=${#devices[@]} ${devices[@]}
+      echo "y" | mdadm --create "${device}" --level=0 --raid-devices=${#devices[@]} "${devices[@]}"
     fi
   fi
 
@@ -431,12 +431,12 @@ function ensure-local-ssds-ephemeral-storage() {
 
   # mount container runtime root dir on SSD
   local container_runtime="${CONTAINER_RUNTIME:-docker}"
-  systemctl stop ${container_runtime}
+  systemctl stop "$container_runtime"
   # Some images mount the container runtime root dir.
   umount "/var/lib/${container_runtime}" || true
   mkdir -p "${ephemeral_mountpoint}/${container_runtime}"
   safe-bind-mount "${ephemeral_mountpoint}/${container_runtime}" "/var/lib/${container_runtime}"
-  systemctl start ${container_runtime}
+  systemctl start "$container_runtime"
 
   # mount kubelet root dir on SSD
   mkdir -p "${ephemeral_mountpoint}/kubelet"
