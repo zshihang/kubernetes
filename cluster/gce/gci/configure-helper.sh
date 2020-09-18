@@ -972,6 +972,8 @@ users:
 EOF
   fi
 
+  local -r admission_manifest=$(get-metadata-value "instance/attributes/admission-manifest")
+
   if [[ -n "${ADMISSION_CONTROL:-}" ]]; then
     # Emit a basic admission control configuration file, with no plugins specified.
     cat <<EOF >/etc/srv/kubernetes/admission_controller_config.yaml
@@ -1051,6 +1053,23 @@ EOF
     kind: WebhookAdmission
     kubeConfigFile: /etc/srv/kubernetes/webhook.kubeconfig
 EOF
+      if [[ ! -z "${admission_manifest}" ]]; then
+        cat <<EOF >>/etc/srv/kubernetes/admission_controller_config.yaml
+    manifestFile: /etc/srv/kubernetes/admission-manifest.yaml
+EOF
+        download-admission-manifest
+      fi
+    else
+      if [[ ! -z "${admission_manifest}" ]]; then
+        cat <<EOF >>/etc/srv/kubernetes/admission_controller_config.yaml
+- name: ValidatingAdmissionWebhook
+  configuration:
+    apiVersion: apiserver.config.k8s.io/v1
+    kind: WebhookAdmissionConfiguration
+    manifestFile: /etc/srv/kubernetes/admission-manifest.yaml
+EOF
+        download-admission-manifest
+      fi
     fi
   fi
 }
@@ -2184,6 +2203,17 @@ function download-extra-addons {
   curl_cmd+=("${EXTRA_ADDONS_URL}")
 
   "${curl_cmd[@]}"
+}
+
+# A function that downloads admission manifests from GCI metadata and puts them
+# in the manifest file.
+function download-admission-manifest {
+  local -r out_dir="/etc/srv/kubernetes"
+  local -r file="${out_dir}/admission-manifest.yaml"
+
+  mkdir -p "${out_dir}"
+
+  get-metadata-value "instance/attributes/admission-manifest" | base64 -d | gzip -d > "${file}"
 }
 
 # A function that returns "true" if hurl should be used, "false" otherwise.
