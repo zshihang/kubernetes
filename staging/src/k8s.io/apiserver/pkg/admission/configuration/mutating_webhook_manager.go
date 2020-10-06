@@ -36,7 +36,6 @@ type mutatingWebhookConfigurationManager struct {
 	configuration *atomic.Value
 	lister        admissionregistrationlisters.MutatingWebhookConfigurationLister
 	hasSynced     func() bool
-	generation    uint64
 }
 
 var _ generic.Source = &mutatingWebhookConfigurationManager{}
@@ -47,7 +46,6 @@ func NewMutatingWebhookConfigurationManager(f informers.SharedInformerFactory) g
 		configuration: &atomic.Value{},
 		lister:        informer.Lister(),
 		hasSynced:     informer.Informer().HasSynced,
-		generation:    1,
 	}
 
 	// Start with an empty list
@@ -72,21 +70,12 @@ func (m *mutatingWebhookConfigurationManager) HasSynced() bool {
 	return m.hasSynced()
 }
 
-func (m *mutatingWebhookConfigurationManager) WebhookType() generic.WebhookType {
-	return generic.MutatingWebhook
-}
-
-func (m *mutatingWebhookConfigurationManager) Generation() uint64 {
-	return atomic.LoadUint64(&m.generation)
-}
-
 func (m *mutatingWebhookConfigurationManager) updateConfiguration() {
 	configurations, err := m.lister.List(labels.Everything())
 	if err != nil {
 		utilruntime.HandleError(fmt.Errorf("error updating configuration: %v", err))
 		return
 	}
-	atomic.AddUint64(&m.generation, 1)
 	m.configuration.Store(mergeMutatingWebhookConfigurations(configurations))
 }
 

@@ -56,7 +56,6 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
-        "builder_example_test.go",
         "builder_test.go",
         "crd_finder_test.go",
         "dry_run_verifier_test.go",
