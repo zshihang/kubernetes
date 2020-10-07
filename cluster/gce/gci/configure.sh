@@ -167,7 +167,7 @@ function validate-hash {
   local -r file="$1"
   local -r expected="$2"
 
-  actual=$(sha512sum ${file} | awk '{ print $1 }') || true
+  actual=$(sha1sum ${file} | awk '{ print $1 }') || true
   if [[ "${actual}" != "${expected}" ]]; then
     echo "== ${file} corrupted, sha512 ${actual} doesn't match expected ${expected} =="
     return 1
@@ -209,7 +209,7 @@ function use-hurl {
 
 # Retry a download until we get it. Takes a hash and a set of URLs.
 #
-# $1 is the sha512 of the URL. Can be "" if the sha512 is unknown.
+# $1 is the sha1 of the URL. Can be "" if the sha1 is unknown.
 # $2+ are the URLs to download.
 function download-or-bust {
   local -r hash="$1"
@@ -228,12 +228,10 @@ function download-or-bust {
       if ! curl ${curl_headers:+-H "${curl_headers}"} -f --ipv4 -Lo "${file}" --connect-timeout 20 --max-time 300 --retry 6 --retry-delay 10 ${CURL_RETRY_CONNREFUSED} "${url}"; then
         echo "== Failed to download ${url}. Retrying. =="
       elif [[ -n "${hash}" ]] && ! validate-hash "${file}" "${hash}"; then
-        # TODO(b/153659289): Evaluate re-enabling retry.
-        echo "== Downloaded ${url} but hash validation failed (ignoring). =="
-        return
+        echo "== Hash validation of ${url} failed. Retrying. =="
       else
         if [[ -n "${hash}" ]]; then
-          echo "== Downloaded ${url} (SHA512 = ${hash}) =="
+          echo "== Downloaded ${url} (SHA1 = ${hash}) =="
         else
           echo "== Downloaded ${url} =="
         fi
@@ -319,7 +317,7 @@ function install-cni-binaries {
   fi
 
   local -r cni_tar="${CNI_TAR_PREFIX}${cni_version}.tgz"
-  local -r cni_url="${CNI_STORAGE_URL_BASE:-https://storage.googleapis.com/gke-release/cni-plugins}/${cni_version}/${cni_tar}"
+  local -r cni_url="${CNI_STORAGE_URL_BASE}/${cni_version}/${cni_tar}"
 
   if is-preloaded "${cni_tar}" "${cni_sha1}"; then
     echo "${cni_tar} is preloaded."
@@ -399,9 +397,9 @@ function install-kube-manifests {
   if [ -n "${KUBE_MANIFESTS_TAR_HASH:-}" ]; then
     local -r manifests_tar_hash="${KUBE_MANIFESTS_TAR_HASH}"
   else
-    echo "Downloading k8s manifests sha512 (not found in env)"
-    download-or-bust "" "${manifests_tar_urls[@]/.tar.gz/.tar.gz.sha512}"
-    local -r manifests_tar_hash=$(cat "${manifests_tar}.sha")
+    echo "Downloading k8s manifests sha1 (not found in env)"
+    download-or-bust "" "${manifests_tar_urls[@]/.tar.gz/.tar.gz.sha1}"
+    local -r manifests_tar_hash=$(cat "${manifests_tar}.sha1")
   fi
 
   if is-preloaded "${manifests_tar}" "${manifests_tar_hash}"; then
@@ -431,7 +429,7 @@ function install-kube-manifests {
   cp "${dst_dir}/kubernetes/gci-trusty/health-monitor.sh" "${KUBE_BIN}/health-monitor.sh"
 
   rm -f "${KUBE_HOME}/${manifests_tar}"
-  rm -f "${KUBE_HOME}/${manifests_tar}.sha512"
+  rm -f "${KUBE_HOME}/${manifests_tar}.sha1"
 }
 
 # Installs hurl to ${KUBE_HOME}/bin/hurl if not already installed.
@@ -658,9 +656,9 @@ function install-kube-binary-config {
   if [[ -n "${SERVER_BINARY_TAR_HASH:-}" ]]; then
     local -r server_binary_tar_hash="${SERVER_BINARY_TAR_HASH}"
   else
-    echo "Downloading binary release sha512 (not found in env)"
-    download-or-bust "" "${server_binary_tar_urls[@]/.tar.gz/.tar.gz.sha512}"
-    local -r server_binary_tar_hash=$(cat "${server_binary_tar}.sha512")
+    echo "Downloading binary release sha1 (not found in env)"
+    download-or-bust "" "${server_binary_tar_urls[@]/.tar.gz/.tar.gz.sha1}"
+    local -r server_binary_tar_hash=$(cat "${server_binary_tar}.sha1")
   fi
 
   if is-preloaded "${server_binary_tar}" "${server_binary_tar_hash}"; then
@@ -733,7 +731,7 @@ function install-kube-binary-config {
   # Clean up.
   rm -rf "${KUBE_HOME}/kubernetes"
   rm -f "${KUBE_HOME}/${server_binary_tar}"
-  rm -f "${KUBE_HOME}/${server_binary_tar}.sha512"
+  rm -f "${KUBE_HOME}/${server_binary_tar}.sha1"
 }
 
 ######### Main Function ##########
@@ -784,4 +782,3 @@ ensure-container-runtime
 install-kube-binary-config
 
 echo "Done for installing kubernetes files"
-
